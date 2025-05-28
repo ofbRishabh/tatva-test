@@ -1,7 +1,3 @@
-// This template requires the Embla Auto Scroll plugin to be installed:
-//
-// npm install embla-carousel-auto-scroll
-
 "use client";
 
 import AutoScroll from "embla-carousel-auto-scroll";
@@ -11,6 +7,59 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+
+export const schema = {
+  title: "Logos Section",
+  type: "object",
+  properties: {
+    heading: {
+      type: "string",
+      title: "Heading",
+      default: "Trusted by these companies",
+    },
+    logos: {
+      type: "array",
+      title: "Logos",
+      items: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            title: "ID",
+          },
+          description: {
+            type: "string",
+            title: "Description",
+          },
+          image: {
+            type: "string",
+            title: "Image URL",
+          },
+          className: {
+            type: "string",
+            title: "Image Class",
+          },
+        },
+      },
+    },
+  },
+};
+
+export const uiSchema = {
+  heading: {
+    "ui:placeholder": "e.g. Trusted by these companies",
+  },
+  logos: {
+    items: {
+      id: { "ui:placeholder": "Unique identifier for the logo" },
+      description: { "ui:placeholder": "Logo description" },
+      image: { "ui:placeholder": "Logo image URL" },
+      className: {
+        "ui:placeholder": "CSS classes for the logo (e.g. h-7 w-auto)",
+      },
+    },
+  },
+};
 
 interface Logo {
   id: string;
@@ -25,9 +74,9 @@ interface LogosProps {
   className?: string;
 }
 
-const Logos = ({
-  heading = "Trusted by these companies",
-  logos = [
+export const sampleData = {
+  heading: "Trusted by these companies",
+  logos: [
     {
       id: "logo-1",
       description: "Logo 1",
@@ -80,6 +129,11 @@ const Logos = ({
       className: "h-7 w-auto",
     },
   ],
+};
+
+const Logos: React.FC<LogosProps> = ({
+  heading = sampleData.heading,
+  logos = sampleData.logos,
 }: LogosProps) => {
   return (
     <section className="py-12">

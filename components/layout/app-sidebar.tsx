@@ -38,8 +38,8 @@ const navigationData = {
           url: "/site/config",
         },
         {
-          title: "Starred",
-          url: "/site/starred",
+          title: "Pages",
+          url: "/site/pages",
         },
         {
           title: "Settings",

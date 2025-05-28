@@ -1,5 +1,80 @@
 import { ArrowRight } from "lucide-react";
 
+export const schema = {
+  title: "Stats Section",
+  type: "object",
+  properties: {
+    heading: {
+      type: "string",
+      title: "Heading",
+      default: "Platform performance insights",
+    },
+    description: {
+      type: "string",
+      title: "Description",
+      default: "Ensuring stability and scalability for all users",
+    },
+    link: {
+      type: "object",
+      title: "Link",
+      properties: {
+        text: {
+          type: "string",
+          title: "Link Text",
+          default: "Read the full impact report",
+        },
+        url: {
+          type: "string",
+          title: "Link URL",
+          default: "https://www.shadcnblocks.com",
+        },
+      },
+    },
+    stats: {
+      type: "array",
+      title: "Stats",
+      items: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            title: "ID",
+          },
+          value: {
+            type: "string",
+            title: "Stat Value",
+          },
+          label: {
+            type: "string",
+            title: "Stat Label",
+          },
+        },
+      },
+    },
+  },
+};
+
+export const uiSchema = {
+  heading: {
+    "ui:placeholder": "e.g. Platform performance insights",
+  },
+  description: {
+    "ui:widget": "textarea",
+    "ui:placeholder": "Brief description of the stats section",
+  },
+  link: {
+    text: { "ui:placeholder": "e.g. Read the full impact report" },
+    url: { "ui:placeholder": "https://..." },
+  },
+  stats: {
+    items: {
+      id: { "ui:placeholder": "Unique identifier for the stat" },
+      value: { "ui:placeholder": "e.g. 250%+" },
+      label: { "ui:placeholder": "e.g. average growth in user engagement" },
+    },
+  },
+};
+
 interface StatsProps {
   heading?: string;
   description?: string;
@@ -14,14 +89,14 @@ interface StatsProps {
   }>;
 }
 
-const Stats = ({
-  heading = "Platform performance insights",
-  description = "Ensuring stability and scalability for all users",
-  link = {
+export const sampleData = {
+  heading: "Platform performance insights",
+  description: "Ensuring stability and scalability for all users",
+  link: {
     text: "Read the full impact report",
     url: "https://www.shadcnblocks.com",
   },
-  stats = [
+  stats: [
     {
       id: "stat-1",
       value: "250%+",
@@ -42,17 +117,14 @@ const Stats = ({
       value: "99.9%",
       label: "customer satisfaction over the last year",
     },
-    {
-      id: "stat-5",
-      value: "200+",
-      label: "integrations with top industry platforms",
-    },
-    {
-      id: "stat-6",
-      value: "99.9%",
-      label: "customer satisfaction over the last year",
-    },
   ],
+};
+
+const Stats: React.FC<StatsProps> = ({
+  heading = sampleData.heading,
+  description = sampleData.description,
+  link = sampleData.link,
+  stats = sampleData.stats,
 }: StatsProps) => {
   return (
     <section className="py-12">

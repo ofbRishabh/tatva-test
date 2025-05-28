@@ -14,7 +14,7 @@ interface CtaProps {
     };
   };
 }
-export const ctaUiSchema = {
+export const uiSchema = {
   description: {
     "ui:widget": "textarea",
   },
@@ -32,7 +32,7 @@ export const ctaUiSchema = {
   },
 };
 
-export const ctaSchema = {
+export const schema = {
   title: "Call to Action",
   type: "object",
   properties: {
@@ -80,10 +80,11 @@ export const ctaSchema = {
   },
 };
 
-const Cta = ({
-  heading = "Call to Action",
-  description = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis!",
-  buttons = {
+export const sampleData = {
+  heading: "Call to Action",
+  description:
+    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis!",
+  buttons: {
     primary: {
       text: "Get Started",
       url: "https://www.shadcnblocks.com",
@@ -93,6 +94,12 @@ const Cta = ({
       url: "https://www.shadcnblocks.com",
     },
   },
+};
+
+const Cta = ({
+  heading = sampleData.heading,
+  description = sampleData.description,
+  buttons = sampleData.buttons,
 }: CtaProps) => {
   return (
     <section className="py-32">

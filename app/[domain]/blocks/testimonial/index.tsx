@@ -12,59 +12,121 @@ import {
 } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
 
-const testimonials = [
-  {
-    id: "testimonial-1",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-1.webp",
+export const schema = {
+  title: "Testimonial Section",
+  type: "object",
+  properties: {
+    testimonials: {
+      type: "array",
+      title: "Testimonials",
+      items: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            title: "ID",
+          },
+          text: {
+            type: "string",
+            title: "Testimonial Text",
+          },
+          name: {
+            type: "string",
+            title: "Customer Name",
+          },
+          role: {
+            type: "string",
+            title: "Customer Role",
+          },
+          avatar: {
+            type: "string",
+            title: "Avatar URL",
+          },
+          rating: {
+            type: "number",
+            title: "Rating (1-5)",
+            default: 5,
+            minimum: 1,
+            maximum: 5,
+          },
+        },
+      },
+    },
   },
-  {
-    id: "testimonial-2",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-2.webp",
-  },
-  {
-    id: "testimonial-3",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-3.webp",
-  },
-  {
-    id: "testimonial-4",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-2.webp",
-  },
-  {
-    id: "testimonial-5",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-3.webp",
-  },
-  {
-    id: "testimonial-6",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-2.webp",
-  },
-  {
-    id: "testimonial-7",
-    text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur. Explicabo.",
-    name: "Customer Name",
-    role: "Position at Company",
-    avatar: "https://shadcnblocks.com/images/block/avatar-3.webp",
-  },
-];
+};
 
-const Testimonial = () => {
+export const uiSchema = {
+  testimonials: {
+    items: {
+      id: { "ui:placeholder": "Unique identifier for the testimonial" },
+      text: {
+        "ui:widget": "textarea",
+        "ui:placeholder": "Customer testimonial text",
+      },
+      name: { "ui:placeholder": "Customer name" },
+      role: { "ui:placeholder": "Customer position/role" },
+      avatar: { "ui:placeholder": "URL to customer avatar" },
+      rating: {
+        "ui:widget": "range",
+        "ui:options": { min: 1, max: 5, step: 1 },
+      },
+    },
+  },
+};
+
+interface TestimonialItem {
+  id: string;
+  text: string;
+  name: string;
+  role: string;
+  avatar: string;
+  rating?: number;
+}
+
+interface TestimonialProps {
+  testimonials?: TestimonialItem[];
+}
+
+export const sampleData = {
+  testimonials: [
+    {
+      id: "testimonial-1",
+      text: "This platform completely transformed our workflow. The intuitive interface and powerful features have significantly improved our team's productivity.",
+      name: "Sarah Johnson",
+      role: "Marketing Director at TechCorp",
+      avatar: "https://shadcnblocks.com/images/block/avatar-1.webp",
+      rating: 5,
+    },
+    {
+      id: "testimonial-2",
+      text: "I've tried many similar solutions, but this one stands out for its reliability and customer support. It's been a game-changer for our business operations.",
+      name: "Michael Chen",
+      role: "Operations Manager at GlobalTech",
+      avatar: "https://shadcnblocks.com/images/block/avatar-2.webp",
+      rating: 5,
+    },
+    {
+      id: "testimonial-3",
+      text: "The customization options are incredible. We were able to tailor everything to our specific needs, which wasn't possible with other solutions we tried before.",
+      name: "Emily Rodriguez",
+      role: "Product Designer at CreativeSolutions",
+      avatar: "https://shadcnblocks.com/images/block/avatar-3.webp",
+      rating: 5,
+    },
+    {
+      id: "testimonial-4",
+      text: "We've seen a 40% increase in customer engagement since implementing this platform. The analytics provide invaluable insights for our business strategy.",
+      name: "David Park",
+      role: "CEO at InnovateCo",
+      avatar: "https://shadcnblocks.com/images/block/avatar-2.webp",
+      rating: 5,
+    },
+  ],
+};
+
+const Testimonial: React.FC<TestimonialProps> = ({
+  testimonials = sampleData.testimonials,
+}) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
 
@@ -104,11 +166,9 @@ const Testimonial = () => {
                   {testimonial.role}
                 </p>
                 <div className="mt-2 flex items-center gap-0.5">
-                  <Star className="size-5 fill-primary stroke-none" />
-                  <Star className="size-5 fill-primary stroke-none" />
-                  <Star className="size-5 fill-primary stroke-none" />
-                  <Star className="size-5 fill-primary stroke-none" />
-                  <Star className="size-5 fill-primary stroke-none" />
+                  {[...Array(testimonial.rating || 5)].map((_, i) => (
+                    <Star key={i} className="size-5 fill-primary stroke-none" />
+                  ))}
                 </div>
               </div>
             </CarouselItem>
