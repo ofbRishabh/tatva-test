@@ -1,5 +1,6 @@
 import { Footer } from "@/components/site/shared/Footer";
 import { Header } from "@/components/site/shared/Header";
+import { getSiteBySubdomain } from "@/lib/actions";
 import "./index.css"; // Ensure global styles are imported
 
 export default async function Layout(props: {
@@ -8,26 +9,17 @@ export default async function Layout(props: {
 }) {
   const { children, params } = props;
 
-  const domain = params.domain;
+  const domain = decodeURIComponent(params.domain);
 
   let site = null;
 
   try {
-    const res = await fetch(
-      `http://localhost:3000/api/sites?domain=${domain}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      }
-    );
+    // The domain param is now just the subdomain (e.g., "mysite")
+    // since the middleware extracts it from "mysite.site.localhost"
+    const subdomain = domain;
 
-    if (res.ok) {
-      const data = await res.json();
-      site = data?.[0] || null;
-    }
+    // Use the proper action function instead of API call
+    site = await getSiteBySubdomain(subdomain);
   } catch (error) {
     console.error("Failed to fetch site data:", error);
   }

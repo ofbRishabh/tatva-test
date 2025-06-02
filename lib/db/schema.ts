@@ -27,7 +27,6 @@ export const sites = mysqlTable("sites", {
   description: varchar("description", { length: 1024 }),
   subDomain: varchar("subDomain", { length: 255 }).unique().notNull(),
   settings: json("settings"),
-  pages: json("pages"),
   customDomain: varchar("customDomain", { length: 255 }).unique(),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt")

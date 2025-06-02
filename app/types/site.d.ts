@@ -1,88 +1,78 @@
 export interface Site {
-  id: number;
+  id: string; // Changed from number to string to match database
   name: string;
-  description: string;
+  description?: string; // Made optional as it might not always be present
   subDomain: string;
-  customDomain: string;
-  settings: {
-    config: {
-      header: {
-        navItemAllignment: string;
-        primaryButton: {
+  customDomain?: string; // Made optional
+  settings?: {
+    config?: {
+      header?: {
+        navItemAllignment?: string;
+        primaryButton?: {
+          title?: string;
+          url?: string;
+        };
+        additionalLinks?: Array<{
           title: string;
           url: string;
-        };
-        additionalLinks: [
-          {
-            title: string;
-            url: string;
-          }
-        ];
+        }>; // Changed from fixed array to optional array
       };
-      footer: {
-        additionalLinks: [
-          {
-            title: string;
-            url: string;
-          }
-        ];
-        socialLinks: {
-          linkdin: string;
-          facebook: string;
-          instagram: string;
-          twitter: string;
+      footer?: {
+        additionalLinks?: Array<{
+          title: string;
+          url: string;
+        }>; // Changed from fixed array to optional array
+        socialLinks?: {
+          linkdin?: string; // Made all social links optional
+          facebook?: string;
+          instagram?: string;
+          twitter?: string;
         };
-        legalLinks: [
-          {
-            name: string;
-            href: string;
-          }
-        ];
+        legalLinks?: Array<{
+          name: string;
+          href: string;
+        }>; // Changed from fixed array to optional array
       };
     };
-    brand: {
-      siteName: string;
-      siteTitle: string;
-      siteDescription: string;
-      siteLogoUrl: string;
-      siteFaviconUrl: string;
-      siteLogoSize: "sm" | "md" | "lg";
-      theme: {
-        primaryColor: string;
-        secondaryColor: string;
-        palette: string;
-        fontFamily: string;
+    brand?: {
+      siteName?: string;
+      siteTitle?: string;
+      siteDescription?: string;
+      siteLogoUrl?: string;
+      siteFaviconUrl?: string;
+      siteLogoSize?: "sm" | "md" | "lg";
+      theme?: {
+        primaryColor?: string;
+        secondaryColor?: string;
+        palette?: string;
+        fontFamily?: string;
       };
     };
-    integrations: {
-      googleAnalyticsId: string;
-      facebookPixelId: string;
-      googleTagManagerId: string;
-      googleAdsId: string;
+    integrations?: {
+      googleAnalyticsId?: string;
+      facebookPixelId?: string;
+      googleTagManagerId?: string;
+      googleAdsId?: string;
     };
   };
-  pages: [
-    {
-      id: string;
-      name: string;
-      slug: string;
-      sortOrder: number;
-      visible: boolean;
-      showInHeader: boolean;
-      showInFooter: boolean;
-    }
-  ];
+  pages?: Page[]; // Changed from fixed array to optional array of Page objects
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface Page {
   id: string;
+  siteId: string;
   name: string;
   slug: string;
+  displayName?: string;
+  description?: string;
   sortOrder: number;
+  showInHeader: boolean;
+  showInFooter: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
   visible: boolean;
-  displayName: string;
   sections: Section[];
   createdAt: Date;
   updatedAt: Date;

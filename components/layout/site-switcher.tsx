@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 
 type Site = {
+  id: string;
   name: string;
   slug: string;
   logo: React.ElementType;
@@ -31,13 +32,17 @@ export function SiteSwitcher({ sites }: { sites: Site[] }) {
   const { site: currentSite } = useParams() as { site?: string };
   const { isMobile } = useSidebar();
 
-  const activeSite = sites.find((t) => t.slug === currentSite);
+  const activeSite = sites.find((t) => t.id === currentSite);
 
   // 🚫 Invalid site slug? Show 404
   if (!activeSite) return notFound();
 
   const switchToSite = (site: Site) => {
-    router.push(`/dashboard/${site.slug}`);
+    router.push(`/dashboard/${site.id}`);
+  };
+
+  const addSite = () => {
+    router.push("/create");
   };
 
   return (
@@ -89,7 +94,7 @@ export function SiteSwitcher({ sites }: { sites: Site[] }) {
             <DropdownMenuSeparator />
 
             {/* Add site - stub for now */}
-            <DropdownMenuItem className="gap-2 p-2">
+            <DropdownMenuItem onClick={() => addSite()} className="gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>

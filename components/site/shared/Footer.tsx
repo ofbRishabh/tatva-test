@@ -15,10 +15,36 @@ type Sections = Array<{
   links: Array<{ name: string; href: string }>;
 }>;
 
-const Footer = ({ site }: { site: Site }) => {
-  const { siteName, siteDescription, siteLogoUrl } = site.settings.brand;
-  const { additionalLinks, socialLinks, legalLinks } =
-    site.settings.config.footer;
+const Footer = ({ site }: { site: Site | null }) => {
+  // Handle case when site is null
+  if (!site) {
+    return (
+      <section className="border-t">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
+            <div className="h-4 w-48 bg-gray-200 animate-pulse rounded"></div>
+            <div className="flex space-x-4">
+              <div className="h-6 w-6 bg-gray-200 animate-pulse rounded"></div>
+              <div className="h-6 w-6 bg-gray-200 animate-pulse rounded"></div>
+              <div className="h-6 w-6 bg-gray-200 animate-pulse rounded"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Safely access nested properties with fallbacks
+  const siteName = site.settings?.brand?.siteName || site.name || "Site";
+  const siteDescription =
+    site.settings?.brand?.siteDescription || site.description || "";
+  const siteLogoUrl = site.settings?.brand?.siteLogoUrl || "";
+
+  const footerConfig = site.settings?.config?.footer || {};
+  const additionalLinks = footerConfig.additionalLinks || [];
+  const socialLinks = footerConfig.socialLinks || {};
+  const legalLinks = footerConfig.legalLinks || [];
 
   const defaultSocialLinks: SocialLink[] = [
     socialLinks.instagram
@@ -51,20 +77,39 @@ const Footer = ({ site }: { site: Site }) => {
       : null,
   ].filter(Boolean) as SocialLink[];
 
-  const pages = site.pages;
+  const pages = site?.pages || []; // Add fallback to empty array
 
+  // Safely filter and sort footer pages
   const footerPages = pages
-    .filter((page) => page.visible && page.showInFooter)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
+    .filter((page) => {
+      // Only include pages that are:
+      // 1. Visible (published)
+      // 2. Explicitly marked to show in footer
+      // 3. Have a valid sortOrder (>= 0)
+      return (
+        page &&
+        page.visible === true &&
+        page.showInFooter === true &&
+        typeof page.sortOrder === "number" &&
+        page.sortOrder >= 0
+      );
+    })
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
   const sections: Sections = [
-    {
-      title: "Quick Links",
-      links: footerPages.map((page) => ({
-        name: page.name,
-        href: `/${page.slug}`,
-      })),
-    },
+    // Only show "Quick Links" section if there are footer pages
+    ...(footerPages.length > 0
+      ? [
+          {
+            title: "Quick Links",
+            links: footerPages.map((page) => ({
+              name: page.displayName || page.name,
+              href: `/${page.slug}`,
+            })),
+          },
+        ]
+      : []),
+    // Add additional footer links if they exist
     ...(additionalLinks && additionalLinks.length > 0
       ? [
           {
@@ -85,13 +130,17 @@ const Footer = ({ site }: { site: Site }) => {
             {/* Logo */}
             <div className="flex items-center gap-2 lg:justify-start">
               <Link href={"/"}>
-                <Image
-                  src={siteLogoUrl}
-                  alt={siteName}
-                  title={siteName}
-                  height={50}
-                  width={150}
-                />
+                {siteLogoUrl ? (
+                  <Image
+                    src={siteLogoUrl}
+                    alt={siteName}
+                    title={siteName}
+                    height={50}
+                    width={150}
+                  />
+                ) : (
+                  <span className="text-xl font-bold">{siteName}</span>
+                )}
               </Link>
             </div>
             <p className="max-w-[70%] text-sm text-muted-foreground">

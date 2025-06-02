@@ -41,29 +41,156 @@ async function resolveSiteId(siteIdentifier: string): Promise<string> {
   }
 
   // Otherwise, treat as subdomain and look up the site
-  const site = await getSiteBySubdomain(siteIdentifier);
+  const site = await getSite(siteIdentifier);
   if (!site) {
-    throw new Error(`Site with subdomain "${siteIdentifier}" does not exist`);
+    throw new Error(`Site with ID "${siteIdentifier}" does not exist`);
   }
   return site.id.toString();
 }
 
 /**
- * Get site by subdomain
+ * Get site by subdomain with pages data
  */
 export async function getSiteBySubdomain(
   subdomain: string
 ): Promise<Site | null> {
   try {
+    // First get the site
+
     const [site] = await db
       .select()
       .from(sites)
       .where(eq(sites.subDomain, subdomain));
 
-    return site ? (site as unknown as Site) : null;
+    if (!site) return null;
+
+    // Then get all pages for this site with navigation flags
+    const sitePages = await db
+      .select({
+        id: pages.id,
+        siteId: pages.siteId,
+        name: pages.name,
+        slug: pages.slug,
+        displayName: pages.displayName,
+        sortOrder: pages.sortOrder,
+        visible: pages.visible,
+        showInHeader: pages.showInHeader,
+        showInFooter: pages.showInFooter,
+        metaTitle: pages.metaTitle,
+        metaDescription: pages.metaDescription,
+        sections: pages.sections,
+        createdAt: pages.createdAt,
+        updatedAt: pages.updatedAt,
+      })
+      .from(pages)
+      .where(eq(pages.siteId, site.id))
+      .orderBy(pages.sortOrder);
+
+    // Safely handle sections field for all pages - ensure it's always an array
+    const safeSitePages = sitePages.map((page) => ({
+      ...page,
+      sections: page.sections || [], // Default to empty array if null/undefined
+    }));
+
+    // Combine site data with pages
+    const siteWithPages: Site = {
+      ...(site as unknown as Site),
+      pages: safeSitePages as unknown as Page[],
+    };
+
+    return siteWithPages;
   } catch (error) {
     console.error("Error fetching site by subdomain:", error);
     throw new Error("Failed to fetch site");
+  }
+}
+
+/**
+ * Get site by ID with pages data
+ */
+export async function getSite(siteId: string): Promise<Site | null> {
+  try {
+    console.log("Fetching site with ID:", siteId);
+
+    // First get the site
+    const [site] = await db.select().from(sites).where(eq(sites.id, siteId));
+
+    if (!site) return null;
+
+    // Then get all pages for this site with navigation flags
+    const sitePages = await db
+      .select({
+        id: pages.id,
+        siteId: pages.siteId,
+        name: pages.name,
+        slug: pages.slug,
+        displayName: pages.displayName,
+        sortOrder: pages.sortOrder,
+        visible: pages.visible,
+        showInHeader: pages.showInHeader,
+        showInFooter: pages.showInFooter,
+        metaTitle: pages.metaTitle,
+        metaDescription: pages.metaDescription,
+        sections: pages.sections,
+        createdAt: pages.createdAt,
+        updatedAt: pages.updatedAt,
+      })
+      .from(pages)
+      .where(eq(pages.siteId, siteId))
+      .orderBy(pages.sortOrder);
+
+    // Safely handle sections field for all pages - ensure it's always an array
+    const safeSitePages = sitePages.map((page) => ({
+      ...page,
+      sections: page.sections || [], // Default to empty array if null/undefined
+    }));
+
+    // Combine site data with pages
+    const siteWithPages: Site = {
+      ...(site as unknown as Site),
+      pages: safeSitePages as unknown as Page[],
+    };
+
+    return siteWithPages;
+  } catch (error) {
+    console.error("Error fetching site:", error);
+    throw new Error("Failed to fetch site");
+  }
+}
+
+/**
+ * Update a site
+ */
+export async function updateSite(
+  siteId: string,
+  siteData: Partial<Omit<Site, "id" | "createdAt" | "updatedAt">>
+): Promise<Site> {
+  try {
+    const [currentSite] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.id, siteId));
+
+    if (!currentSite) {
+      throw new Error("Site not found");
+    }
+
+    // Update the site
+    await db.update(sites).set(siteData).where(eq(sites.id, siteId));
+
+    // Get the updated site
+    const [updatedSite] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.id, siteId));
+
+    revalidatePath(`/dashboard/${siteId}/site/settings`);
+    revalidatePath(`/dashboard/${siteId}/site`);
+
+    return updatedSite as unknown as Site;
+  } catch (error) {
+    console.error(`Error updating site with ID ${siteId}:`, error);
+    throw error;
   }
 }
 
@@ -119,6 +246,8 @@ export async function createPage(
     revalidatePath(`/dashboard/${siteId}/site/pages`);
     revalidatePath(`/dashboard/${siteId}/site`);
     revalidatePath(`/${pageData.slug}`);
+    // Revalidate the main site to update navigation
+    revalidatePath(`/`);
 
     return newPage as unknown as Page;
   } catch (error) {
@@ -142,7 +271,13 @@ export async function getPages(siteIdentifier: string): Promise<Page[]> {
       .from(pages)
       .where(eq(pages.siteId, siteId));
 
-    return pagesData as unknown as Page[];
+    // Safely handle sections field for all pages - ensure it's always an array
+    const safePages = pagesData.map((page) => ({
+      ...page,
+      sections: page.sections || [], // Default to empty array if null/undefined
+    }));
+
+    return safePages as unknown as Page[];
   } catch (error) {
     console.error("Error fetching pages:", error);
     throw error;
@@ -158,7 +293,16 @@ export async function getPage(pageId: string): Promise<Page | null> {
       .select()
       .from(pages)
       .where(eq(pages.id, pageId));
-    return pageData ? (pageData as unknown as Page) : null;
+
+    if (!pageData) return null;
+
+    // Safely handle sections field - ensure it's always an array
+    const safePage = {
+      ...pageData,
+      sections: pageData.sections || [], // Default to empty array if null/undefined
+    };
+
+    return safePage as unknown as Page;
   } catch (error) {
     console.error(`Error fetching page with ID ${pageId}:`, error);
     throw error;
@@ -187,7 +331,15 @@ export async function getPageBySlug(
       .from(pages)
       .where(and(eq(pages.siteId, site.id), eq(pages.slug, slug)));
 
-    return pageData ? (pageData as unknown as Page) : null;
+    if (!pageData) return null;
+
+    // Safely handle sections field - ensure it's always an array
+    const safePage = {
+      ...pageData,
+      sections: pageData.sections || [], // Default to empty array if null/undefined
+    };
+
+    return safePage as unknown as Page;
   } catch (error) {
     console.error(
       `Error fetching page with slug ${slug} for domain ${domain}:`,
@@ -259,6 +411,8 @@ export async function updatePage(
     revalidatePath(`/dashboard/${currentPage.siteId}/site/pages/${pageId}`);
     revalidatePath(`/dashboard/${currentPage.siteId}/site`);
     revalidatePath(`/${currentPage.slug}`);
+    // Revalidate the main site to update navigation when showInHeader/showInFooter changes
+    revalidatePath(`/`);
     if (pageData.slug && pageData.slug !== currentPage.slug) {
       revalidatePath(`/${pageData.slug}`);
     }
@@ -284,11 +438,25 @@ export async function deletePage(pageId: string): Promise<void> {
       throw new Error("Page not found");
     }
 
+    // Check if this is the only page for the site
+    const sitePages = await db
+      .select()
+      .from(pages)
+      .where(eq(pages.siteId, page.siteId));
+
+    if (sitePages.length <= 1) {
+      throw new Error(
+        "Cannot delete the last page. Every site must have at least one page."
+      );
+    }
+
     await db.delete(pages).where(eq(pages.id, pageId));
 
     revalidatePath(`/dashboard/${page.siteId}/site/pages`);
     revalidatePath(`/dashboard/${page.siteId}/site`);
     revalidatePath(`/${page.slug}`);
+    // Revalidate the main site in case the home page changed
+    revalidatePath(`/`);
   } catch (error) {
     console.error(`Error deleting page with ID ${pageId}:`, error);
     throw error;
@@ -703,6 +871,127 @@ export async function duplicateSection(
       `Error duplicating section ${sectionId} in page ${pageId}:`,
       error
     );
+    throw error;
+  }
+}
+
+/**
+ * Reorder pages within a site
+ */
+export async function reorderPages(
+  siteId: string,
+  pageIds: string[]
+): Promise<Page[]> {
+  try {
+    // Get all pages for the site
+    const sitePages = await db
+      .select()
+      .from(pages)
+      .where(eq(pages.siteId, siteId));
+
+    if (!sitePages.length) {
+      throw new Error("No pages found for site");
+    }
+
+    // Validate that all page IDs exist and belong to the site
+    const existingPageIds = sitePages.map((p) => p.id);
+    const invalidIds = pageIds.filter((id) => !existingPageIds.includes(id));
+
+    if (invalidIds.length > 0) {
+      throw new Error(`Invalid page IDs: ${invalidIds.join(", ")}`);
+    }
+
+    if (pageIds.length !== sitePages.length) {
+      throw new Error("The number of page IDs must match the current pages");
+    }
+
+    // Update sort order for each page
+    const updatePromises = pageIds.map(async (pageId, index) => {
+      return db
+        .update(pages)
+        .set({ sortOrder: index })
+        .where(eq(pages.id, pageId));
+    });
+
+    await Promise.all(updatePromises);
+
+    // Get the updated pages
+    const updatedPages = await db
+      .select()
+      .from(pages)
+      .where(eq(pages.siteId, siteId))
+      .orderBy(pages.sortOrder);
+
+    revalidatePath(`/dashboard/${siteId}/site/pages`);
+
+    return updatedPages as unknown as Page[];
+  } catch (error) {
+    console.error(`Error reordering pages for site ${siteId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new site
+ */
+export async function createSite(
+  siteData: Omit<Site, "id" | "pages" | "createdAt" | "updatedAt">
+): Promise<Site> {
+  try {
+    console.log("Creating new site:", siteData.name);
+
+    // Create the site
+    const newSiteData = {
+      ...siteData,
+      id: uuidv4(),
+    };
+
+    await db.insert(sites).values(newSiteData);
+
+    // Get the newly created site
+    const [newSite] = await db
+      .select()
+      .from(sites)
+      .where(eq(sites.id, newSiteData.id));
+
+    if (!newSite) {
+      throw new Error("Failed to create site");
+    }
+
+    // Revalidate paths
+    revalidatePath("/dashboard");
+    revalidatePath(`/dashboard/${newSite.id}`);
+
+    // Get the complete site with pages
+    const siteWithPages = await getSite(newSite.id);
+    return siteWithPages || (newSite as unknown as Site);
+  } catch (error) {
+    console.error("Error creating site:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get the home page for a site (first page by sortOrder)
+ */
+export async function getHomePage(siteId: string): Promise<Page | null> {
+  try {
+    const existingPages = await getPages(siteId);
+
+    if (existingPages.length === 0) {
+      return null;
+    }
+
+    // Return the first visible page (sorted by sortOrder)
+    const visiblePages = existingPages.filter((page) => page.visible);
+    if (visiblePages.length > 0) {
+      return visiblePages.sort((a, b) => a.sortOrder - b.sortOrder)[0];
+    }
+
+    // If no visible pages, return the first page overall
+    return existingPages.sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  } catch (error) {
+    console.error("Error getting home page:", error);
     throw error;
   }
 }

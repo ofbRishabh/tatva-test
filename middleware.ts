@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
+
 export function middleware(request: NextRequest) {
   const url = request.nextUrl;
 
@@ -14,11 +15,21 @@ export function middleware(request: NextRequest) {
 
   const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN!;
   const BUILDER_DOMAIN = `builder.${ROOT_DOMAIN}`;
+  const SITE_SUFFIX = `.site.${ROOT_DOMAIN}`;
 
+  console.log("Domain: ", domain);
+  console.log("Path: ", path);
   if (domain === BUILDER_DOMAIN) {
     return NextResponse.rewrite(
       new URL(`/builder${path === "/" ? "" : path}`, request.url)
     );
+  }
+
+  if (domain.endsWith(SITE_SUFFIX)) {
+    // Extract subdomain from the full domain
+    const subdomain = domain.replace(SITE_SUFFIX, "");
+    console.log("Extracted subdomain: ", subdomain);
+    return NextResponse.rewrite(new URL(`/${subdomain}${path}`, request.url));
   }
 }
 

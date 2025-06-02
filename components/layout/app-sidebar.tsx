@@ -30,13 +30,9 @@ const navigationData = {
     },
     {
       title: "Site",
-      url: "/playground",
+      url: "/",
       icon: Globe,
       items: [
-        {
-          title: "Config",
-          url: "/site/config",
-        },
         {
           title: "Pages",
           url: "/site/pages",
@@ -54,7 +50,7 @@ const navigationData = {
     },
     {
       title: "Messages",
-      url: "/message",
+      url: "/messages",
       icon: MessageCircle,
     },
   ],
@@ -71,6 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         const data = await response.json();
 
         const formattedTeams = data.map((site) => ({
+          id: site.id,
           name: site.name,
           slug: site.subDomain,
           logo: Command,
